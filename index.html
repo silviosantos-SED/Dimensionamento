@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dimensionamento Elétrico</title>
+
+<style>
+body { font-family: Arial; padding: 20px; }
+table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+th, td { border: 1px solid #333; padding: 8px; text-align: center; }
+th { background: #2f3b63; color: white; }
+input, select { width: 100%; padding: 5px; }
+button { margin-top: 10px; padding: 10px; cursor: pointer; }
+.resultado { font-size: 18px; margin-top: 15px; }
+</style>
+
+</head>
+
+<body>
+
+<h2>Dimensionamento de Cabos</h2>
+
+<button onclick="adicionarLinha()">+ Adicionar Cabo</button>
+
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Bitola</th>
+<th>Quantidade</th>
+<th>Área (mm²)</th>
+<th>Ação</th>
+</tr>
+</thead>
+
+<tbody id="cabos"></tbody>
+</table>
+
+<button onclick="calcular()">Calcular</button>
+
+<div class="resultado">
+Área Total: <span id="total">0</span> mm²<br>
+Eletroduto Sugerido: <span id="resultado">-</span>
+</div>
+
+<script>
+
+// 🔗 COLE SUAS URLs AQUI
+const urlPVC = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3aXF6xatSMwY80LYANSSkfLMCyPBN-jBEhuWOr-RuemGWdfxOoZ8J5TtegZNHgsRSCnHHTQTRxxTE/pub?output=ods";
+const urlEPR = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQVLnKzQ34cs3LKqOfFJ8S9g3axtGx6vcxaTiwA5DjADKlKw5BT4uLVweUCiDaLCKCsZ5rzXODOz84H/pub?output=ods";
+const urlEletroduto = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSeRgJchED_xpZEkcGRqewL3MY6jhkJVPU0UbKlCeCjq9CBMN8Kq6Gw18Rq2DTRIG-n6Jb8HxEvdAYU/pub?output=ods";
+
+let cabosDB = {};
+let eletrodutosDB = [];
+
+// 🔄 Carregar banco
+Promise.all([
+  fetch(urlPVC).then(r=>r.json()),
+  fetch(urlEPR).then(r=>r.json()),
+  fetch(urlEletroduto).then(r=>r.json())
+]).then(([pvc, epr, eletro]) => {
+
+  cabosDB["PVC"] = pvc;
+  cabosDB["EPR"] = epr;
+  eletrodutosDB = eletro;
+
+  adicionarLinha();
+});
+
+// ➕ Adicionar linha
+function adicionarLinha(){
+  let tabela = document.getElementById("cabos");
+  let row = tabela.insertRow();
+
+  row.innerHTML = `
+    <td>
+      <select onchange="atualizarBitolas(this)">
+        <option value="PVC">PVC</option>
+        <option value="EPR">EPR</option>
+      </select>
+    </td>
+
+    <td>
+      <select onchange="calcularLinha(this)"></select>
+    </td>
+
+    <td>
+      <input type="number" value="1" min="1" onchange="calcularLinha(this)">
+    </td>
+
+    <td class="area">0</td>
+
+    <td>
+      <button onclick="removerLinha(this)">X</button>
+    </td>
+  `;
+
+  atualizarBitolas(row.cells[0].querySelector("select"));
+}
+
+// 🔁 Atualiza bitolas conforme tipo
+function atualizarBitolas(selectTipo){
+  let tipo = selectTipo.value;
+  let row = selectTipo.closest("tr");
+  let selectBitola = row.cells[1].querySelector("select");
+
+  selectBitola.innerHTML = "";
+
+  cabosDB[tipo].forEach(c => {
+    let opt = document.createElement("option");
+    opt.value = c.area_mm2;
+    opt.text = c.secao_mm2 + " mm²";
+    selectBitola.add(opt);
+  });
+
+  calcularLinha(selectBitola);
+}
+
+// 🧮 Calcula linha individual
+function calcularLinha(element){
+  let row = element.closest("tr");
+
+  let area = parseFloat(row.cells[1].querySelector("select").value);
+  let qtd = parseFloat(row.cells[2].querySelector("input").value);
+
+  let total = area * qtd;
+  row.cells[3].innerText = total.toFixed(2);
+
+  calcular();
+}
+
+// ❌ remover linha
+function removerLinha(btn){
+  btn.closest("tr").remove();
+  calcular();
+}
+
+// 🧠 cálculo geral
+function calcular(){
+  let totalArea = 0;
+
+  document.querySelectorAll("#cabos tr").forEach(row => {
+    totalArea += parseFloat(row.cells[3].innerText) || 0;
+  });
+
+  document.getElementById("total").innerText = totalArea.toFixed(2);
+
+  dimensionarEletroduto(totalArea);
+}
+
+// ⚡ dimensionamento automático
+function dimensionarEletroduto(areaCabos){
+
+  let resultado = eletrodutosDB.find(e => 
+    (areaCabos / e.area_mm2) <= 0.4
+  );
+
+  if(resultado){
+    document.getElementById("resultado").innerText =
+      resultado.secao_pol + " | Ø interno: " + resultado.diam_int_mm + " mm";
+  } else {
+    document.getElementById("resultado").innerText = "Acima do limite";
+  }
+}
+
+</script>
+
+</body>
+</html>
