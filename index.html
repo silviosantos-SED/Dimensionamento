@@ -159,25 +159,38 @@ tr:nth-child(even) {
 
 // ===== BANCO =====
 const cabosPVC = [
-{secao:1.5, area:6.83},{secao:2.5, area:9.9},{secao:4, area:12.88},
-{secao:6, area:16.98},{secao:10, area:28.27},{secao:16, area:38.48},
-{secao:25, area:58.09},{secao:35, area:80.91},{secao:50, area:109.36}
+  {secao:1.5, diam:2.95, area:6.83},{secao:2.5, diam:3.55, area:9.9},
+  {secao:4, diam:4.05, area:12.88},{secao:6, diam:4.65, area:16.98},
+  {secao:10, diam:6, area:28.27},{secao:16, diam:7, area:38.48}, 
+  {secao:25, diam:8.6, area:58.09},{secao:35, diam:10.15, area:80.91}, 
+  {secao:50, diam:11.8, area:109.36},{secao:70, diam:13.5, area:143.14}, 
+  {secao:95, diam:15.7, area:193.59},{secao:120, diam:17.2, area:232.35}, 
+  {secao:150, diam:19.1, area:286.52},{secao:185, diam:21.4, area:359.68}, 
+  {secao:240, diam:24.2, area:459.96}
 ];
 
 const cabosEPR = [
-{secao:1.5, area:19.24},{secao:2.5, area:22.48},{secao:4, area:26.88},
-{secao:6, area:32.67},{secao:10, area:45.36},{secao:16, area:58.09},
-{secao:25, area:84.95},{secao:35, area:112.16},{secao:50, area:145.27}
+  {secao:1.5, diam:4.95, area:19.24},{secao:2.5, diam:5.35, area:22.48}, 
+  {secao:4, diam:5.85, area:26.88},{secao:6, diam:6.45, area:32.67}, 
+  {secao:10, diam:7.6, area:45.36},{secao:16, diam:8.6, area:58.09}, 
+  {secao:25, diam:10.4, area:84.95},{secao:35, diam:11.95, area:112.16}, 
+  {secao:50, diam:13.6, area:145.27},{secao:70, diam:15.5, area:188.69}, 
+  {secao:95, diam:17.5, area:240.53},{secao:120, diam:19.2, area:289.53}, 
+  {secao:150, diam:21.3, area:356.33},{secao:185, diam:23.6, area:437.44}, 
+  {secao:240, diam:26.4, area:547.39},{secao:300, diam:29, area:660.52}, 
+  {secao:400, diam:32.5, area:829.58},{secao:500, diam:36.1, area:1023.54}
 ];
 
 const eletrodutos = [
-{nome:"1/2", area:211},{nome:"3/4", area:366},{nome:"1", area:593},
-{nome:"1 1/2", area:1346},{nome:"2", area:2181}
+  {nome:"1/2", area:211.24},{nome:"3/4", area:366.44},{nome:"1", area:593.96},
+  {nome:"1 1/4", area:1012.23},{nome:"1 1/2", area:1346.14},{nome:"2", area:2181.28}, 
+  {nome:"2 1/2", area:3557.30},{nome:"3", area:4976.41},{nome:"4", area:8478.54}
 ];
 
 const calhas = [
-{nome:"50x50", area:2500},{nome:"100x50", area:5000},
-{nome:"100x100", area:10000},{nome:"200x100", area:20000}
+  {h:50,l:50,a:2500},{h:50,l:100,a:5000},{h:100,l:50,a:5000},{h:100,l:100,a:10000},
+  {h:150,l:50,a:7500},{h:150,l:100,a:15000},{h:200,l:50,a:10000},{h:200,l:100,a:20000},
+  {h:300,l:50,a:15000},{h:300,l:100,a:30000},{h:400,l:50,a:20000},{h:400,l:100,a:40000}  
 ];
 
 let totalArea = 0;
