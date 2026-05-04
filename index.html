@@ -1,192 +1,276 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <title>Calculadora de Ocupação</title>
 
 <style>
-body { font-family: Arial; padding: 20px; }
-table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-th, td { border: 1px solid #333; padding: 6px; text-align: center; }
-th { background: #2f3b63; color: white; }
-input, select { width: 100%; }
-button { margin-top: 10px; padding: 8px; }
-h2 { margin-top: 30px; }
+body {
+  font-family: Arial;
+  padding: 20px;
+  margin-right: 260px;
+  background: #f0f6ff;
+}
+
+.box {
+  border: 1px solid #3b82f6;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+input, select {
+  margin: 5px;
+  padding: 6px;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+}
+
+button {
+  padding: 8px 12px;
+  cursor: pointer;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #93c5fd;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background: #1e3a8a;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background: #eff6ff;
+}
+
+.ajuda-fixa {
+  position: fixed;
+  right: 10px;
+  top: 10px;
+  width: 220px;
+  font-size: 12px;
+  background: #e0edff;
+  border: 1px solid #3b82f6;
+}
+
+.total {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1d4ed8;
+}
+
+.btn-remover {
+  background: #dc2626;
+}
+
+.ok { color: green; }
+.alerta { color: orange; }
+.erro { color: red; }
 </style>
 
 </head>
-
 <body>
 
-<h2>Cabos</h2>
-<button onclick="addCabo()">+ Cabo</button>
+<h2>Calculadora de Ocupação</h2>
 
-<table>
-<thead>
-<tr>
-<th>Tipo</th>
-<th>Seção</th>
-<th>Qtd</th>
-<th>Área</th>
-<th>Ø</th>
-<th>Ação</th>
-</tr>
-</thead>
-<tbody id="cabos"></tbody>
-</table>
+<!-- AJUDA -->
+<div class="box ajuda-fixa">
+  <h3>Ajuda</h3>
+  <p><b>Eletroduto:</b> máx. 40%</p>
+  <p><b>Eletrocalha:</b> até 50%</p>
+  <p>Fator aplicado: 1,2</p>
+</div>
 
-<h2>Tipo de Instalação</h2>
+<!-- ADICIONAR CABO -->
+<div class="box">
+  <h3>Adicionar Cabo</h3>
 
-<select id="tipoInstalacao" onchange="trocarTipo()">
-<option value="eletroduto">Eletroduto</option>
-<option value="eletrocalha">Eletrocalha</option>
-</select>
+  <select id="tipoCabo">
+    <option value="PVC">PVC</option>
+    <option value="EPR">EPR</option>
+  </select>
 
-<div id="opcoes"></div>
+  <select id="secao"></select>
 
-<h2>Resultado</h2>
-Área Cabos: <span id="totalOriginal">0</span> mm²<br>
-Área Corrigida: <span id="totalCabos">0</span> mm²<br>
-Ocupação: <span id="ocupacao">0</span> %
+  <input type="number" id="qtd" value="1" placeholder="Quantidade">
+
+  <button onclick="adicionar()">Adicionar</button>
+</div>
+
+<!-- INSTALAÇÃO -->
+<div class="box">
+  <h3>Instalação</h3>
+
+  <select id="tipoInstalacao" onchange="trocarTipo()">
+    <option value="eletroduto">Eletroduto</option>
+    <option value="eletrocalha">Eletrocalha</option>
+  </select>
+
+  <select id="dimensao"></select>
+</div>
+
+<!-- TABELA -->
+<div class="box">
+  <h3>Cabos</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Seção</th>
+        <th>Qtd</th>
+        <th>Área</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody id="tabela"></tbody>
+  </table>
+
+  <button onclick="limpar()">Limpar Tudo</button>
+</div>
+
+<!-- RESULTADO -->
+<div class="box">
+  <h3>Resultado</h3>
+  <p>Área Cabos: <span id="areaCabos">0</span></p>
+  <p>Área Corrigida: <span id="areaCorrigida">0</span></p>
+  <p class="total">Ocupação: <span id="ocupacao">0%</span></p>
+</div>
 
 <script>
 
 // ===== BANCO =====
 const cabosPVC = [
-{secao:1.5, diam:2.95, area:6.83},{secao:2.5, diam:3.55, area:9.9},
-{secao:4, diam:4.05, area:12.88},{secao:6, diam:4.65, area:16.98},
-{secao:10, diam:6, area:28.27},{secao:16, diam:7, area:38.48},
-{secao:25, diam:8.6, area:58.09},{secao:35, diam:10.15, area:80.91},
-{secao:50, diam:11.8, area:109.36},{secao:70, diam:13.5, area:143.14},
-{secao:95, diam:15.7, area:193.59},{secao:120, diam:17.2, area:232.35},
-{secao:150, diam:19.1, area:286.52},{secao:185, diam:21.4, area:359.68},
-{secao:240, diam:24.2, area:459.96}
+{secao:1.5, area:6.83},{secao:2.5, area:9.9},{secao:4, area:12.88},
+{secao:6, area:16.98},{secao:10, area:28.27},{secao:16, area:38.48},
+{secao:25, area:58.09},{secao:35, area:80.91},{secao:50, area:109.36}
 ];
 
 const cabosEPR = [
-{secao:1.5, diam:4.95, area:19.24},{secao:2.5, diam:5.35, area:22.48},
-{secao:4, diam:5.85, area:26.88},{secao:6, diam:6.45, area:32.67},
-{secao:10, diam:7.6, area:45.36},{secao:16, diam:8.6, area:58.09},
-{secao:25, diam:10.4, area:84.95},{secao:35, diam:11.95, area:112.16},
-{secao:50, diam:13.6, area:145.27},{secao:70, diam:15.5, area:188.69},
-{secao:95, diam:17.5, area:240.53},{secao:120, diam:19.2, area:289.53},
-{secao:150, diam:21.3, area:356.33},{secao:185, diam:23.6, area:437.44},
-{secao:240, diam:26.4, area:547.39},{secao:300, diam:29, area:660.52},
-{secao:400, diam:32.5, area:829.58},{secao:500, diam:36.1, area:1023.54}
+{secao:1.5, area:19.24},{secao:2.5, area:22.48},{secao:4, area:26.88},
+{secao:6, area:32.67},{secao:10, area:45.36},{secao:16, area:58.09},
+{secao:25, area:84.95},{secao:35, area:112.16},{secao:50, area:145.27}
 ];
 
 const eletrodutos = [
-{nome:"1/2", area:211.24},{nome:"3/4", area:366.44},{nome:"1", area:593.96},
-{nome:"1 1/4", area:1012.23},{nome:"1 1/2", area:1346.14},{nome:"2", area:2181.28},
-{nome:"2 1/2", area:3557.30},{nome:"3", area:4976.41},{nome:"4", area:8478.54}
+{nome:"1/2", area:211},{nome:"3/4", area:366},{nome:"1", area:593},
+{nome:"1 1/2", area:1346},{nome:"2", area:2181}
 ];
 
 const calhas = [
-{h:50,l:50,a:2500},{h:100,l:50,a:5000},{h:150,l:50,a:7500},
-{h:200,l:50,a:10000},{h:300,l:50,a:15000},{h:400,l:50,a:20000},
-{h:50,l:100,a:5000},{h:100,l:100,a:10000},{h:150,l:100,a:15000},
-{h:200,l:100,a:20000},{h:300,l:100,a:30000},{h:400,l:100,a:40000}
+{nome:"50x50", area:2500},{nome:"100x50", area:5000},
+{nome:"100x100", area:10000},{nome:"200x100", area:20000}
 ];
+
+let totalArea = 0;
 
 // ===== FUNÇÕES =====
 
-function addCabo(){
-let row = document.getElementById("cabos").insertRow();
+function carregarSecoes(){
+  let tipo = document.getElementById("tipoCabo").value;
+  let db = tipo==="PVC"?cabosPVC:cabosEPR;
 
-row.innerHTML = `
-<td>
-<select onchange="calcLinha(this)">
-<option>PVC</option>
-<option>EPR</option>
-</select>
-</td>
-
-<td>
-<select onchange="calcLinha(this)">
-${cabosEPR.map(c=>`<option value="${c.secao}">${c.secao}</option>`)}
-</select>
-</td>
-
-<td><input type="number" value="1" onchange="calcLinha(this)"></td>
-<td class="area">0</td>
-<td class="diam">0</td>
-<td><button onclick="this.closest('tr').remove();calc()">X</button></td>
-`;
-
-calcLinha(row);
-}
-
-function calcLinha(el){
-let row = el.closest("tr");
-
-let tipo = row.cells[0].querySelector("select").value;
-let secao = parseFloat(row.cells[1].querySelector("select").value);
-let qtd = parseFloat(row.cells[2].querySelector("input").value);
-
-let db = tipo === "PVC" ? cabosPVC : cabosEPR;
-let cabo = db.find(c=>c.secao===secao);
-
-row.cells[3].innerText = (cabo.area*qtd).toFixed(2);
-row.cells[4].innerText = cabo.diam;
-
-calc();
+  let sel = document.getElementById("secao");
+  sel.innerHTML = db.map(c=>`<option value="${c.secao}">${c.secao}</option>`);
 }
 
 function trocarTipo(){
-let tipo = document.getElementById("tipoInstalacao").value;
-let div = document.getElementById("opcoes");
+  let tipo = document.getElementById("tipoInstalacao").value;
+  let sel = document.getElementById("dimensao");
 
-if(tipo==="eletroduto"){
-div.innerHTML = `
-<h3>Eletroduto</h3>
-<select id="eletrodutoSel" onchange="calc()">
-${eletrodutos.map(e=>`<option value="${e.area}">${e.nome}</option>`)}
-</select>
-`;
-}else{
-div.innerHTML = `
-<h3>Eletrocalha</h3>
-<select id="calhaSel" onchange="calc()">
-${calhas.map(c=>`<option value="${c.a}">${c.h}x${c.l}</option>`)}
-</select>
-`;
+  if(tipo==="eletroduto"){
+    sel.innerHTML = eletrodutos.map(e=>`<option value="${e.area}">${e.nome}</option>`);
+  } else {
+    sel.innerHTML = calhas.map(c=>`<option value="${c.area}">${c.nome}</option>`);
+  }
+
+  calcular();
 }
 
-calc();
+function adicionar(){
+  let tipo = document.getElementById("tipoCabo").value;
+  let secao = parseFloat(document.getElementById("secao").value);
+  let qtd = parseFloat(document.getElementById("qtd").value);
+
+  if(!qtd) return alert("Informe quantidade");
+
+  let db = tipo==="PVC"?cabosPVC:cabosEPR;
+  let cabo = db.find(c=>c.secao===secao);
+
+  let area = cabo.area*qtd;
+  totalArea += area;
+
+  let linha = document.createElement("tr");
+
+  linha.innerHTML = `
+    <td>${tipo}</td>
+    <td>${secao}</td>
+    <td>${qtd}</td>
+    <td>${area.toFixed(2)}</td>
+    <td><button class="btn-remover" onclick="remover(this, ${area})">X</button></td>
+  `;
+
+  document.getElementById("tabela").appendChild(linha);
+
+  calcular();
 }
 
-function calc(){
-
-let total=0;
-
-document.querySelectorAll("#cabos tr").forEach(r=>{
-total+=parseFloat(r.cells[3].innerText)||0;
-});
-
-let totalCorrigido = total*1.2;
-
-document.getElementById("totalOriginal").innerText = total.toFixed(2);
-document.getElementById("totalCabos").innerText = totalCorrigido.toFixed(2);
-
-let tipo = document.getElementById("tipoInstalacao").value;
-
-let areaBase=0;
-
-if(tipo==="eletroduto"){
-let sel = document.getElementById("eletrodutoSel");
-if(sel) areaBase = parseFloat(sel.value);
-}else{
-let sel = document.getElementById("calhaSel");
-if(sel) areaBase = parseFloat(sel.value);
+function remover(btn, area){
+  btn.parentElement.parentElement.remove();
+  totalArea -= area;
+  calcular();
 }
 
-if(areaBase>0){
-let ocup = (totalCorrigido/areaBase)*100;
-document.getElementById("ocupacao").innerText = ocup.toFixed(1);
-}
+function limpar(){
+  totalArea = 0;
+  document.getElementById("tabela").innerHTML="";
+  calcular();
 }
 
+function calcular(){
+  let areaCorr = totalArea * 1.2;
+
+  document.getElementById("areaCabos").innerText = totalArea.toFixed(2);
+  document.getElementById("areaCorrigida").innerText = areaCorr.toFixed(2);
+
+  let base = parseFloat(document.getElementById("dimensao").value || 0);
+
+  if(base>0){
+    let ocup = (areaCorr/base)*100;
+    let span = document.getElementById("ocupacao");
+
+    span.innerText = ocup.toFixed(1)+"%";
+
+    span.className="";
+    if(ocup<40) span.classList.add("ok");
+    else if(ocup<50) span.classList.add("alerta");
+    else span.classList.add("erro");
+  }
+}
+
+// INIT
+carregarSecoes();
 trocarTipo();
+
+document.getElementById("tipoCabo").addEventListener("change", carregarSecoes);
 
 </script>
 
