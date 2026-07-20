@@ -124,7 +124,11 @@ tr:nth-child(even) {
     <option value="eletrocalha">Eletrocalha</option>
   </select>
 
-  <select id="dimensao"></select>
+  <div id="eletrodutoDiv"><select id="dimensao"></select></div>
+<div id="calhaDiv" style="display:none;">
+<label>Altura (H):</label><select id="alturaCalha"></select>
+<label>Largura (L):</label><select id="larguraCalha"></select>
+</div>
 
   <br><br>
 
@@ -217,14 +221,22 @@ function carregarSecoes(){
   sel.innerHTML = db.map(c=>`<option value="${c.secao}">${c.secao}</option>`);
 }
 
+function carregarCalhas(){
+ const hs=[...new Set(calhas.map(c=>c.h))];
+ const ls=[...new Set(calhas.map(c=>c.l))];
+ alturaCalha.innerHTML=hs.map(h=>`<option value="${h}">${h} mm</option>`).join("");
+ larguraCalha.innerHTML=ls.map(l=>`<option value="${l}">${l} mm</option>`).join("");
+}
 function trocarTipo(){
   let tipo = document.getElementById("tipoInstalacao").value;
   let sel = document.getElementById("dimensao");
+  eletrodutoDiv.style.display=tipo==="eletroduto"?"block":"none";
+  calhaDiv.style.display=tipo==="eletrocalha"?"block":"none";
 
   if(tipo==="eletroduto"){
     sel.innerHTML = eletrodutos.map(e=>`<option value="${e.area}">${e.nome}</option>`);
   } else {
-    sel.innerHTML = calhas.map(c=>`<option value="${c.area}">${c.nome}</option>`);
+    carregarCalhas();
   }
 
   calcular();
@@ -275,7 +287,14 @@ function calcular(){
   let areaCorr = totalArea * 1.2;
 
   let tipo = document.getElementById("tipoInstalacao").value;
-  let base = parseFloat(document.getElementById("dimensao").value || 0);
+  let base;
+  if(tipo==="eletroduto"){
+    base=parseFloat(document.getElementById("dimensao").value||0);
+  }else{
+    const h=parseInt(alturaCalha.value||0),l=parseInt(larguraCalha.value||0);
+    const c=calhas.find(x=>x.h===h && x.l===l);
+    base=c?c.a:0;
+  }
 
   document.getElementById("tipoResultado").innerText =
     tipo === "eletroduto" ? "Eletroduto" : "Eletrocalha";
@@ -309,6 +328,9 @@ carregarSecoes();
 trocarTipo();
 
 document.getElementById("tipoCabo").addEventListener("change", carregarSecoes);
+document.addEventListener("change",e=>{
+ if(e.target.id==="alturaCalha"||e.target.id==="larguraCalha") calcular();
+});
 
 </script>
 
