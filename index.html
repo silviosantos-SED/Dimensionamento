@@ -154,10 +154,16 @@ tr:nth-child(even) {
 <!-- RESULTADO -->
 <div class="box">
   <h3>Resultado</h3>
+
   <p><strong>Tipo Instalação:</strong> <span id="tipoResultado">-</span></p>
+
   <p><strong>Área Útil:</strong> <span id="areaUtil">0.00</span> mm²</p>
-  <p><strong>Área de Ocupação:</strong> <span id="areaCorrigida">0.00</span> mm²</p>
-    <strong>Taxa de Ocupação:</strong><span id="ocupacao">0,0%</span>
+
+  <p><strong>Área Corrigida:</strong> <span id="areaCorrigida">0.00</span> mm²</p>
+
+  <p class="total">
+    <strong>Taxa de Ocupação:</strong>
+    <span id="ocupacao">0,0%</span>
   </p>
 </div>
 
@@ -265,23 +271,36 @@ function limpar(){
 }
 
 function calcular(){
+
   let areaCorr = totalArea * 1.2;
 
-  document.getElementById("areaCabos").innerText = totalArea.toFixed(2);
-  document.getElementById("areaCorrigida").innerText = areaCorr.toFixed(2);
-
+  let tipo = document.getElementById("tipoInstalacao").value;
   let base = parseFloat(document.getElementById("dimensao").value || 0);
 
-  if(base>0){
-    let ocup = (areaCorr/base)*100;
+  document.getElementById("tipoResultado").innerText =
+    tipo === "eletroduto" ? "Eletroduto" : "Eletrocalha";
+
+  document.getElementById("areaUtil").innerText =
+    base.toFixed(2);
+
+  document.getElementById("areaCorrigida").innerText =
+    areaCorr.toFixed(2);
+
+  if(base > 0){
+    let ocup = (areaCorr / base) * 100;
     let span = document.getElementById("ocupacao");
 
-    span.innerText = ocup.toFixed(1)+"%";
+    span.innerText = ocup.toFixed(1) + "%";
 
-    span.className="";
-    if(ocup<40) span.classList.add("ok");
-    else if(ocup<50) span.classList.add("alerta");
-    else span.classList.add("erro");
+    span.className = "";
+    if(ocup < 40)
+      span.classList.add("ok");
+    else if(ocup < 50)
+      span.classList.add("alerta");
+    else
+      span.classList.add("erro");
+  } else {
+    document.getElementById("ocupacao").innerText = "0,0%";
   }
 }
 
